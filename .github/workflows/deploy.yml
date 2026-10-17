@@ -1,13 +1,16 @@
-name: Branch Deployment Practice
-
-on:
-  push:
-    branches:
-      - dev
-      - uat
-      - main
-
 jobs:
+  validate-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate required files
+        run: |
+          test -f README.md
+          test -f google-login.txt
+          echo "Repository validation passed"
+
   identify-branch:
     runs-on: ubuntu-latest
     steps:
