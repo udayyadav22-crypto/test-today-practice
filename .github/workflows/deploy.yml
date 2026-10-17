@@ -1,0 +1,23 @@
+name: Branch Deployment Practice
+
+on:
+  push:
+    branches:
+      - dev
+      - uat
+      - main
+
+jobs:
+  identify-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show deployment target
+        run: |
+          echo "Branch: $GITHUB_REF_NAME"
+          if [ "$GITHUB_REF_NAME" = "dev" ]; then
+            echo "Target: DEV"
+          elif [ "$GITHUB_REF_NAME" = "uat" ]; then
+            echo "Target: UAT"
+          elif [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "Target: PRODUCTION"
+          fi
