@@ -6,8 +6,21 @@ on:
       - dev
       - uat
       - main
+      - feature/google-login
 
 jobs:
+  validate-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate required files
+        run: |
+          test -f README.md
+          test -f google-login.txt
+          echo "Repository validation passed"
+
   identify-branch:
     runs-on: ubuntu-latest
     steps:
@@ -20,4 +33,6 @@ jobs:
             echo "Target: UAT"
           elif [ "$GITHUB_REF_NAME" = "main" ]; then
             echo "Target: PRODUCTION"
+          else
+            echo "Target: FEATURE"
           fi
