@@ -1,3 +1,4 @@
+
 name: Repository CI
 
 on:
@@ -6,6 +7,7 @@ on:
       - dev
       - uat
       - main
+
   push:
     branches:
       - dev
@@ -15,32 +17,58 @@ on:
 
 jobs:
   validate-repository:
+    name: Validate and Test Python App
     runs-on: ubuntu-latest
 
     steps:
+      # 1. GitHub repository madhun code checkout karne
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # 2. Python environment setup karne
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Validate required files
         run: |
           set -e
           test -s README.md
           test -s google-login.txt
+          test -s app/main.py
+          test -s tests/test_app.py
+          test -s Dockerfile
           echo "Repository validation passed"
 
+      # 4. Python unit tests run karne
+      - name: Run Python unit tests
+        run: python -m unittest discover -s tests -v
+
+      # 5. Git whitespace errors check karne
       - name: Validate Git whitespace
         run: git diff --check
 
   identify-branch:
+    name: Identify Environment
     runs-on: ubuntu-latest
 
     steps:
       - name: Show environment
         run: |
           echo "Branch: $GITHUB_REF_NAME"
+
           case "$GITHUB_REF_NAME" in
-            dev) echo "Target: DEV" ;;
-            uat) echo "Target: UAT" ;;
-            main) echo "Target: PRODUCTION" ;;
-            *) echo "Target: FEATURE" ;;
+            dev)
+              echo "Target: DEV"
+              ;;
+            uat)
+              echo "Target: UAT"
+              ;;
+            main)
+              echo "Target: PRODUCTION"
+              ;;
+            *)
+              echo "Target: FEATURE"
+              ;;
           esac
