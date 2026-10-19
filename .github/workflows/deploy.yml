@@ -31,6 +31,7 @@ jobs:
         with:
           python-version: '3.12'
 
+      # 3. Required files validate karne
       - name: Validate required files
         run: |
           set -e
@@ -45,7 +46,11 @@ jobs:
       - name: Run Python unit tests
         run: python -m unittest discover -s tests -v
 
-      # 5. Git whitespace errors check karne
+      # 5. Docker image build karne
+      - name: Build Docker image
+        run: docker build -t devops-practice-app:ci .
+
+      # 6. Git whitespace errors check karne
       - name: Validate Git whitespace
         run: git diff --check
 
