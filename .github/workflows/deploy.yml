@@ -1,6 +1,11 @@
-name: Branch Deployment Practice
+name: Repository CI
 
 on:
+  pull_request:
+    branches:
+      - dev
+      - uat
+      - main
   push:
     branches:
       - dev
@@ -11,28 +16,31 @@ on:
 jobs:
   validate-repository:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Validate required files
         run: |
-          test -f README.md
-          test -f google-login.txt
+          set -e
+          test -s README.md
+          test -s google-login.txt
           echo "Repository validation passed"
+
+      - name: Validate Git whitespace
+        run: git diff --check
 
   identify-branch:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Show deployment target
+      - name: Show environment
         run: |
           echo "Branch: $GITHUB_REF_NAME"
-          if [ "$GITHUB_REF_NAME" = "dev" ]; then
-            echo "Target: DEV"
-          elif [ "$GITHUB_REF_NAME" = "uat" ]; then
-            echo "Target: UAT"
-          elif [ "$GITHUB_REF_NAME" = "main" ]; then
-            echo "Target: PRODUCTION"
-          else
-            echo "Target: FEATURE"
-          fi
+          case "$GITHUB_REF_NAME" in
+            dev) echo "Target: DEV" ;;
+            uat) echo "Target: UAT" ;;
+            main) echo "Target: PRODUCTION" ;;
+            *) echo "Target: FEATURE" ;;
+          esac
