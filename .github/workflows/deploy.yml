@@ -1,3 +1,4 @@
+
 name: Repository CI
 
 on:
@@ -102,3 +103,28 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-practice-app:2.0
             ${{ secrets.DOCKERHUB_USERNAME }}/devops-practice-app:latest
+
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
+
+    needs: validate-repository
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
