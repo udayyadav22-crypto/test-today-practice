@@ -1,4 +1,3 @@
-
 name: Repository CI
 
 on:
@@ -14,6 +13,10 @@ on:
       - uat
       - main
       - feature/google-login
+      - feature/dockerhub-push
+
+permissions:
+  contents: read
 
 jobs:
   validate-repository:
@@ -21,17 +24,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. GitHub repository madhun code checkout karne
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Python environment setup karne
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      # 3. Required files validate karne
       - name: Validate required files
         run: |
           set -e
@@ -42,15 +42,12 @@ jobs:
           test -s Dockerfile
           echo "Repository validation passed"
 
-      # 4. Python unit tests run karne
       - name: Run Python unit tests
         run: python -m unittest discover -s tests -v
 
-      # 5. Docker image build karne
       - name: Build Docker image
         run: docker build -t devops-practice-app:ci .
 
-      # 6. Git whitespace errors check karne
       - name: Validate Git whitespace
         run: git diff --check
 
@@ -77,3 +74,31 @@ jobs:
               echo "Target: FEATURE"
               ;;
           esac
+
+  publish-dockerhub:
+    name: Build and Push to Docker Hub
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+
+    needs:
+      - validate-repository
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-practice-app:2.0
+            ${{ secrets.DOCKERHUB_USERNAME }}/devops-practice-app:latest
